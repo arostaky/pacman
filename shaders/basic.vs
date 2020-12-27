@@ -32,18 +32,12 @@ layout (location = 1) in vec3 vsiNormal;
 layout (location = 2) in vec2 vsiTexCoord;
 
 uniform mat4 projMat, mvMat;
-uniform vec4 scolor;
-uniform vec3 Lp;
 
-/* on créé une nouvelle sortie du Vertex Shader sous la forme d'une
- * couleur */
-out vec4 color;
+out vec3 vsoNormal;
+out vec4 vsoMPosition;
 
 void main(void) {
-  vec3 n = normalize((transpose(inverse(mvMat)) * vec4(vsiNormal, 0.0f)).xyz);
-  vec4 mpos = mvMat * vec4(vsiPosition, 1.0f);
-  vec3 Ld = normalize(Lp - mpos.xyz);
-  float li = clamp(dot(Ld, n), 0.0f, 1.0f);
-  color = li * scolor;
-  gl_Position = projMat * mpos;
+  vsoNormal = normalize((transpose(inverse(mvMat)) * vec4(vsiNormal, 0.0f)).xyz);
+  vsoMPosition = mvMat * vec4(vsiPosition, 1.0f);
+  gl_Position = projMat * vsoMPosition;
 }

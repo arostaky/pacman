@@ -21,7 +21,10 @@ static void propoagate(int* lab, int v, int x, int y, int w, int* n) {
 		if (lab[(y + dir[i][1]) * w + x + dir[i][0]] > v)
 			propoagate(lab, v, x + dir[i][0], y + dir[i][1], w, n);
 }
-
+void freeLabyrinth(unsigned int * l ){
+	if(l)
+		free(l);
+}
 unsigned int* labyrinth(int w, int h) {
 	int i, j, k = 0, sw = (w - 1) / 2, sh = (h - 1) / 2;
 	int* lab, toGo = sw * sh - 1;
