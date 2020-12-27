@@ -15,6 +15,8 @@
  /* Prototypes des fonctions statiques contenues dans ce fichier C */
 static void init(void);
 static void draw(void);
+static void key(int keycode);
+static void idle(void);
 static void quit(void);
 /*!\brief largeur et hauteur de la fenêtre */
 static int _wW = 800, _wH = 600;
@@ -24,7 +26,7 @@ static GLuint _pId = 0;
 
 static Environnement * _plateau = NULL;
 static Perso * _pacman = NULL;
-
+static Perso * _ghost = NULL;
 /*!\brief créé la fenêtre d'affichage, initialise GL et les données,
  * affecte les fonctions d'événements et lance la boucle principale
  * d'affichage. */
@@ -35,6 +37,8 @@ int main(int argc, char ** argv) {
   init();
   atexit(quit);
   gl4duwDisplayFunc(draw);
+  gl4duwKeyDownFunc(key);
+  gl4duwIdleFunc(idle);
   gl4duwMainLoop();
   return 0;
 }
@@ -46,7 +50,8 @@ static void init(void) {
   /* générer le plateau */
   _plateau = new Environnement(45, 25);
   // créer pacman:
-  _pacman = new Perso(1);
+  _pacman = new Perso(_plateau,1);
+  _ghost =  new Perso(_plateau);
   /* Création du programme shader (voir le dossier shader) */
   _pId = gl4duCreateProgram("<vs>shaders/basic.vs", "<fs>shaders/basic.fs", NULL);
   /* Set de la couleur (RGBA) d'effacement OpenGL */
@@ -63,17 +68,48 @@ static void init(void) {
   gl4duBindMatrix("mvMat");
   gl4duLoadIdentityf();
 }
+
+
+static void key(int keycode){
+  switch(keycode){
+    case GL4DK_UP:
+      _pacman->move(0,-1);
+      break;
+    case GL4DK_DOWN:
+      _pacman->move(0,1);
+      break;
+    case GL4DK_LEFT:
+      _pacman->move(-1,0);
+      break;
+    case GL4DK_RIGHT:
+      _pacman->move(1,0);
+      break;
+    default:
+      break;
+  }
+}
+
+static void idle(void) {
+  static double t0 = 0;
+  double t;
+  t = gl4dGetElapsedTime() / 1000.0;
+  if( t - t0 > 0.5){
+     _ghost->ia();
+     t0 = t;
+  }
+}
+
 /*!\brief Cette fonction dessine dans le contexte OpenGL actif. */
 static void draw(void) {
   GLfloat bleu[] = { 0, 0, 1, 1 }, vert[] = { 0, 1, 0, 1 };
   GLfloat lump0[] = { 5, 60, 10, 1 }, lump[4];
   GLfloat* mat;
-  static GLfloat a = 0;
-  lump0[1] -= a;
-  a += 0.05f;
+  // static GLfloat a = 0;
+  // lump0[1] -= a;
+  // a += 0.05f;
   gl4duBindMatrix("mvMat");
   gl4duLoadIdentityf();
-  gl4duLookAtf(0, 50, 10, 0, 0, 0, 0, 1, 0);
+  gl4duLookAtf(0, 50, 30, 0, 0, 0, 0, 1, 0);
   /* récupérer la matrice pour modéliser la lumière dans le repère lookAt */
   mat = (GLfloat *)gl4duGetMatrixData();
   MMAT4XVEC4(lump, mat, lump0);
@@ -87,6 +123,7 @@ static void draw(void) {
   _plateau->draw(_pId, vert, bleu);
   // creer pacman:
   _pacman->draw(_pId);
+  _ghost->draw(_pId);
   /* désactiver le programme shader */
   glUseProgram(0);
 }
@@ -95,6 +132,7 @@ static void draw(void) {
 static void quit(void) {
   delete _plateau;
   delete _pacman;
+  delete _ghost;
   /* nettoyage des éléments utilisés par la bibliothèque GL4Dummies */
   gl4duClean(GL4DU_ALL);
 }
