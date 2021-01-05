@@ -51,7 +51,7 @@ else
         LDFLAGS += -lGL
 endif
 CPPFLAGS += $(shell sdl2-config --cflags)
-LDFLAGS  += -lGL4Dummies $(shell sdl2-config --libs)
+LDFLAGS  += -lGL4Dummies $(shell sdl2-config --libs) -lSDL2_mixer
 all: $(PROGNAME)
 $(PROGNAME): $(OBJ)
 	$(CXX) $(OBJ) $(LDFLAGS) -o $(PROGNAME)

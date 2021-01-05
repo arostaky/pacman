@@ -2,8 +2,8 @@
 #define OBJETS_H_SEEN
 
 #include <GL4D/gl4du.h>
+#include <SDL_mixer.h>
 #include "makeLabyrinth.h"
-
 class Environnement {
 	private:
 		static GLuint cube, quad;
@@ -78,12 +78,14 @@ class Environnement {
 class Perso {
 private:
 	static GLuint sphere, cone;
+	static Mix_Chunk* gsound;
 	GLfloat x, z, r;
 	int type;
 	Environnement * env;
 	void init(Environnement * env, GLfloat x, GLfloat z, GLfloat r, int type){
 		if(sphere == 0) sphere = gl4dgGenSpheref(8,8);
 		if(cone == 0) cone = gl4dgGenConef(8, GL_FALSE);
+		
 		this->env = env;
 		this->x = x;
 		this->z = z;
@@ -93,6 +95,15 @@ private:
 
 	} 
 public:
+	static void initAudio(){
+		if(gsound == NULL) gsound = Mix_LoadWAV("ghost.wav");
+	}
+	static void freeAudio(){
+		if(gsound){
+			Mix_FreeChunk(gsound);
+			gsound = NULL;
+		} 
+	}
 	Perso(Environnement * env){
 		init(env, 0,0,0.75f,0);
 	}
@@ -110,8 +121,10 @@ public:
 	void ia(){
 		if(type == 0){
 			static int a = 0;
-			if((a % 2) == 0)
+			if((a % 2) == 0){
 				r = 1.0f;
+				Mix_PlayChannel(-1, gsound, 0);
+			}
 			else
 				r = 0.75f;
 			a++;

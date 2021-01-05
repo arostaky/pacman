@@ -10,6 +10,7 @@
  */
 #include <GL4D/gl4du.h>
 #include <GL4D/gl4duw_SDL2.h>
+#include <SDL_mixer.h>
 #include "makeLabyrinth.h"
 #include "Objets.h"
  /* Prototypes des fonctions statiques contenues dans ce fichier C */
@@ -45,6 +46,24 @@ int main(int argc, char ** argv) {
 /*!\brief initialise les paramètres OpenGL et les données. 
  */
 static void init(void) {
+// load support for the OGG and MOD sample/music formats
+  int flags = MIX_INIT_MP3;
+  int initted = Mix_Init(flags);
+  if (SDL_Init(SDL_INIT_AUDIO)==-1){
+      printf("SDL_Init: %s\n", SDL_GetError());
+      exit(1);
+  }
+  if ((initted & flags) != flags) {
+      printf("Mix_Init: Failed to init required mp3 support!\n");
+      printf("Mix_Init: %s\n", Mix_GetError());
+      // handle error
+      exit(2);
+  }
+  if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024)==-1){
+    printf("Mix_OpenAudio: %s\n", Mix_GetError());
+    exit(2);
+  }
+  Perso::initAudio();
   /* Activer le test de profondeur */
   glEnable(GL_DEPTH_TEST);
   /* générer le plateau */
@@ -130,6 +149,9 @@ static void draw(void) {
 /*!\brief appelée au moment de sortir du programme (atexit), elle
  *  libère les éléments OpenGL utilisés.*/
 static void quit(void) {
+  Perso::freeAudio();
+  Mix_CloseAudio();
+  Mix_Quit();
   delete _plateau;
   delete _pacman;
   delete _ghost;
